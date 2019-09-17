@@ -15,3 +15,9 @@ def get_wikidump_url(base_url="https://dumps.wikimedia.org/enwiki/"):
         if a.has_attr('href')
     ]
     return base_url + dumps_list[-2]
+
+
+def get_list_url_wikidump(
+        dump_url="https://dumps.wikimedia.org/enwiki/20190901/"
+        ):
+    return [True]
