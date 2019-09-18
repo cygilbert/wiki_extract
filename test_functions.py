@@ -4,7 +4,7 @@ Unit tests for the project
 
 import os
 from modules.download_functions import get_wikidump_url,\
-    get_list_downloads_wikidump, get_soup_from_url, download_file
+    get_list_downloads_wikidump, get_soup_from_url, get_file_from_url
 
 
 class TestDownloadFunctions:
@@ -15,7 +15,6 @@ class TestDownloadFunctions:
 
     def test_get_wikidump_url(self):
         dump_url = get_wikidump_url()
-        # test base url
         assert "https://dumps.wikimedia.org/enwiki/"\
             in dump_url
 
@@ -56,7 +55,7 @@ class TestDownloadFunctions:
         urls = [url_info[0] for url_info in list_url_wikidump]
         assert len(urls) == len(list(set(urls)))
 
-    def test_download_file(self):
+    def test_get_download_file(self):
         target_folder = "temp_files/"
         # remove previous file
         if not(os.path.isdir(target_folder)) and (target_folder != ""):
@@ -64,5 +63,6 @@ class TestDownloadFunctions:
         else:
             for f in os.listdir(target_folder):
                 os.remove(os.path.join(target_folder, f))
-        file_name, target_folder = download_file(target_folder=target_folder)
+        file_name, target_folder = get_file_from_url(
+            target_folder=target_folder)
         assert os.path.exists(target_folder + file_name)
