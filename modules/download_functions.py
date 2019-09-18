@@ -7,6 +7,7 @@ Download functions
 import requests
 import os
 import urllib
+import time
 from bs4 import BeautifulSoup
 
 
@@ -56,7 +57,7 @@ def get_list_downloads_wikidump(
     param dump_url: the url of the latest english wikipedia dump
     type base_url: string
 
-    return: list of tuples (url of files, size of files)
+    return: list of tuples (url of files, size of files in MB)
     rtype: list
     '''
 
@@ -69,7 +70,7 @@ def get_list_downloads_wikidump(
         if ('pages-articles' in url)\
             and ('xml-p' in url)\
                 and ('multistream' not in url):
-            files.append((url, text.split()[1:]))
+            files.append((dump_url + url, round(float(text.split()[1]), 1)))
     return files
 
 
@@ -115,13 +116,39 @@ def get_file_from_url(
     file_name = url.split('/')[-1]
     file_path = target_folder + file_name
     if not(os.path.isdir(target_folder)) and (target_folder != ""):
+        print("%s does not exist, making it..." % target_folder)
         os.mkdir(target_folder)
     if not os.path.exists(file_path):
         print('downloading ' + file_name + '...')
+        start_time = time.time()
         datatowrite = download_file(url).read()
         with open(file_path, 'wb') as f:
             f.write(datatowrite)
-        print(file_name + ' downloaded !')
+        print(
+            file_name + ' downloaded !' +
+            " in %s seconds" % (time.time() - start_time))
     else:
         print(file_name + ' already exists !')
     return file_name, target_folder
+
+
+def main_download_functions():
+
+    dump_url = get_wikidump_url()
+    list_downloads_wikidump = get_list_downloads_wikidump(dump_url=dump_url)
+    list_downloads_wikidump = sorted(
+        list_downloads_wikidump,
+        key=lambda x: x[1],
+        reverse=False
+    )
+    for file in list_downloads_wikidump[:3]:
+        get_file_from_url(
+            url=file[0],
+            target_folder='../temp_files/'
+        )
+
+
+if __name__ == '__main__':
+    start_time = time.time()
+    main_download_functions()
+    print("--- %s seconds ---" % (time.time() - start_time))
