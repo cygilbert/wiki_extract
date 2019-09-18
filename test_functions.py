@@ -3,9 +3,11 @@ Unit tests for the project
 """
 
 import os
+import mwparserfromhell
 from modules.download_functions import get_wikidump_url,\
     get_list_downloads_wikidump, get_soup_from_url, get_file_from_url
-from modules.parse_functions import split_articles
+from modules.parse_functions import split_articles, get_infobox_article,\
+    process_article_with_infobox
 
 
 class TestDownloadFunctionsUnit:
@@ -85,3 +87,28 @@ class TestParseFunctions:
             if set(article.keys()) == set(['text', 'timestamp', 'title'])
             ]
         assert len(articles) == len(articles_keys_checked)
+
+    def test_get_infobox_article(self):
+        article_text = "{{BLP sources|date=July 2014}} \n \
+            {{Infobox ice hockey player \n \
+            | name = Marko Virtanenx}}"
+        wiki_text = mwparserfromhell.parse(article_text)
+        infobox = get_infobox_article(wiki_text)
+        assert infobox == {
+            'infobox type': 'Infobox ice hockey player',
+            'name': 'Marko Virtanenx'}
+
+    def test_process_article(self):
+        url = 'https://dumps.wikimedia.org/enwiki/20190901/'\
+            'enwiki-20190901-pages-articles26.xml-p42567204p42663461.bz2'
+        target_folder = "temp_files/"
+        file_name, target_folder = get_file_from_url(
+            url=url,
+            target_folder=target_folder)
+        file_path = target_folder + file_name
+        articles = split_articles(file_path, stop_iteration=1000)
+        article_infoboxes = list(filter(None, [
+            process_article_with_infobox(article)
+            for article in articles]))
+        print(list(article['infobox'] for article in article_infoboxes))
+        assert True

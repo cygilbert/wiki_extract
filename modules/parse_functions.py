@@ -1,5 +1,6 @@
 import xml.sax
 import bz2
+import mwparserfromhell
 
 
 class WikiXmlHandlerSplit(xml.sax.handler.ContentHandler):
@@ -50,12 +51,45 @@ def split_articles(data_path, stop_iteration=False):
     # Parsing object
     parser = xml.sax.make_parser()
     parser.setContentHandler(handler)
-    # Iterate through compressed file
-    # for i, line in enumerate(subprocess.Popen(['bzcat'],
-    #                          stdin = open(data_path),
-    #                          stdout = subprocess.PIPE).stdout):
     for i, line in enumerate(bz2.BZ2File(data_path, 'r')):
         parser.feed(line)
         if stop_iteration and (i > stop_iteration):
             break
     return handler._pages
+
+
+def get_infobox_article(wiki_text):
+    try:
+        infobox = [
+            template for template in wiki_text.filter_templates()
+            if "Infobox" in template.name][0]
+        information = {
+            param.name.strip_code().strip(): param.value.strip_code().strip()
+            for param in infobox.params
+        }
+        information['infobox type'] = infobox.name.strip_code().strip()
+        return information
+    except IndexError:
+        return False
+
+
+def process_article_with_infobox(article):
+    """Process a wikipedia article looking for template"""
+    # Create a parsing object
+    wiki_text = mwparserfromhell.parse(article['text'])
+    # Search through templates for the template
+    article['infobox'] = get_infobox_article(wiki_text)
+    if article['infobox']:
+        # Extract internal wikilinks
+        article['wikilinks'] = [
+            x.title.strip_code().strip()
+            for x in wiki_text.filter_wikilinks()
+        ]
+        # Extract external links
+        article['exlinks'] = [
+            x.url.strip_code().strip()
+            for x in wiki_text.filter_external_links()
+        ]
+        # Find approximate length of article
+        article['text_length'] = len(wiki_text.strip_code().strip())
+        return article

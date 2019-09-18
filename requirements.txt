@@ -14,6 +14,7 @@ idna==2.8
 importlib-metadata==0.19
 mccabe==0.6.1
 more-itertools==7.2.0
+mwparserfromhell==0.5.4
 packaging==19.1
 pluggy==0.12.0
 py==1.8.0
