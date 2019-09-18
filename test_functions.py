@@ -2,8 +2,9 @@
 Unit tests for the project
 """
 
+import os
 from modules.download_functions import get_wikidump_url,\
-    get_list_downloads_wikidump, get_soup_from_url
+    get_list_downloads_wikidump, get_soup_from_url, download_file
 
 
 class TestDownloadFunctions:
@@ -20,7 +21,6 @@ class TestDownloadFunctions:
 
     def test_format_date_wikidump_url(self):
         dump_url = get_wikidump_url()
-        # test format url
         latest_date = dump_url.split('/')[-2]
         assert (len(latest_date) == 8 and latest_date.isdigit())
 
@@ -55,3 +55,14 @@ class TestDownloadFunctions:
             )
         urls = [url_info[0] for url_info in list_url_wikidump]
         assert len(urls) == len(list(set(urls)))
+
+    def test_download_file(self):
+        target_folder = "temp_files/"
+        # remove previous file
+        if not(os.path.isdir(target_folder)) and (target_folder != ""):
+            os.mkdir(target_folder)
+        else:
+            for f in os.listdir(target_folder):
+                os.remove(os.path.join(target_folder, f))
+        file_name, target_folder = download_file(target_folder=target_folder)
+        assert os.path.exists(target_folder + file_name)

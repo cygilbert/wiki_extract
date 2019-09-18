@@ -3,6 +3,8 @@ Download functions
 """
 
 import requests
+import os
+import urllib
 from bs4 import BeautifulSoup
 
 
@@ -34,3 +36,23 @@ def get_list_downloads_wikidump(
                 and ('multistream' not in url):
             files.append((url, text.split()[1:]))
     return files
+
+
+def download_file(
+        url='https://dumps.wikimedia.org/enwiki/20190901/' +
+            'enwiki-20190901-pages-articles14.xml-p7697599p7744799.bz2',
+        target_folder="temp_files/"):
+    file_name = url.split('/')[-1]
+    file_path = target_folder + file_name
+    if not(os.path.isdir(target_folder)) and (target_folder != ""):
+        os.mkdir(target_folder)
+    if not os.path.exists(file_path):
+        print('downloading ' + file_name + '...')
+        filedata = urllib.request.urlopen(url)
+        datatowrite = filedata.read()
+        with open(file_path, 'wb') as f:
+            f.write(datatowrite)
+        print(file_name + ' downloaded !')
+    else:
+        print(file_name + ' already exists !')
+    return file_name, target_folder
