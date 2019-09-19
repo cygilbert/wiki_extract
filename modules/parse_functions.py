@@ -1,3 +1,9 @@
+"""
+Parse functions
+    Module of functions to parse wikipedia dump
+    downloaded with download_functions module
+"""
+
 import xml.sax
 import bz2
 import mwparserfromhell
@@ -41,9 +47,16 @@ class WikiXmlHandlerSplit(xml.sax.handler.ContentHandler):
 def split_articles(data_path, stop_iteration=False):
 
     """
-    Find all the book articles from a compressed wikipedia XML dump.
-   `limit` is an optional argument to only return a set number of books.
-    If save, books are saved to partition directory based on file name
+    Split a wikidump file into wikipedia articles
+
+    param datapath: the path of the wikipedia dump file
+    param stop_itearation: number of line max to
+    read in the wikidump file. If False, read all the file
+    type data: string
+    type stop_iteration: int
+
+    return: list of wikipedia articles
+    rtype: list of dictionnary
     """
 
     # Object for handling xml
@@ -59,6 +72,19 @@ def split_articles(data_path, stop_iteration=False):
 
 
 def get_infobox_article(wiki_text):
+
+    """
+    Get the infobox from the text of an article if it exists
+    please visit : https://en.wikipedia.org/wiki/Help:Infobox
+    for more informations
+
+    param wiki_text: the text of an article
+    type wiki_text: string
+
+    return: wikipedia infobox if it existes, False otherwise
+    rtype: dictionary
+    """
+
     try:
         infobox = [
             template for template in wiki_text.filter_templates()
@@ -74,8 +100,21 @@ def get_infobox_article(wiki_text):
 
 
 def process_article_with_infobox(article):
-    """Process a wikipedia article looking for template"""
-    # Create a parsing object
+
+    """
+    Enrich an article with infobox info, wikilinks,
+    external links and text length
+
+    param article: an article with ['text', 'timestamp',
+    'title'] as keys list
+    type wiki_text: dictionary
+
+    return: an article with ['text', 'timestamp',
+    'title', infobox, exlinks, wikilinks, text_length]
+    as keys list
+    rtype: dictionary
+    """
+
     wiki_text = mwparserfromhell.parse(article['text'])
     # Search through templates for the template
     article['infobox'] = get_infobox_article(wiki_text)
